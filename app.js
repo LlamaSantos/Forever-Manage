@@ -25,7 +25,7 @@ bus.on("app::config", function (){
         fs.writeFileSync($file, data, "utf-8");
 
     }
-    nconf.file({file: $file});
+    nconf.argv().env().file({file: $file});
 });
 bus.on("app::start", function (){
     var projects = nconf.get("projects");
@@ -52,6 +52,7 @@ bus.emit("app::config");
 //"add :name :path"
 app.router.on("add :name :module", function (name, _path){
     var $file = path.normalize(path.join(process.cwd(), _path));
+    app.log.info("Adding " + name + " at: " + $file);
 
     if (fs.existsSync(path.normalize(path.join(process.cwd(), "package.json")))){
         app.log.info($file);
