@@ -31,20 +31,25 @@ bus.on("app::config", function (){
 bus.on("app::start", function (){
     var projects = nconf.get("projects");
     _(_.keys(projects)).each(function (name){
-        children.push(new (forever.Monitor)(projects[name], {
+        var child = new (forever.Monitor)(projects[name], {
             silent: false,
             watch: true,
+            watchDirectory: path.dirname(projects[name]),
             watchIgnoreDotFiles: true,
-            watchIgnorePatterns: true,
-            spawnWith: {
-                env: process.ENV,
-                customFds: [-1,-1,-1],
-                setsid: false
-            },
-            env: {
-                environment: "dev"
-            }
-        }));
+            watchIgnorePatterns: true
+        });
+
+        child.on("start", function (){
+            app.log.info("Process " + name + " has started.");
+        });
+        child.on("error", function (err){
+            app.log.error(err);
+        });
+        child.on("exit", function (){
+            app.log.info("Process " + name + " has existed.");
+        });
+
+        child.start();
     });
 });
 // -- Ensure we can do anything w/ a config file.
@@ -52,29 +57,34 @@ bus.emit("app::config");
 
 //"add :name :path"
 app.router.on("add :name :module", function (name, _path){
-    var $file = path.normalize(path.join(process.cwd(), _path));
-    app.log.info("Adding " + name + " at: " + $file);
+    var basePath = path.normalize(path.join(process.cwd(), _path));
+    app.log.info("Adding " + name + " at: " + basePath);
 
     app.log.info(process.cwd());
 
-    if (fs.existsSync(path.normalize(path.join(process.cwd(), "package.json")))){
-        var pkg = JSON.parse(fs.readFileSync(path.normalize(path.join(process.cwd(), "package.json"))));
-        app.log.info(pkg);
-
-        var projects = nconf.get("projects");
-        projects[name] = $file;
-        nconf.set("projects", projects);
-        nconf.save(function (err){
-            if (err){
-                app.log.error(err);
-            }
-            else{
-                app.log.info("Project successfully added.");
-            }
-        });
+    var packageJson = path.normalize(path.join(basePath, "package.json"));
+    if (fs.existsSync(packageJson)){
+        var pkg = JSON.parse(fs.readFileSync(packageJson));
+        var file = path.normalize(path.join(basePath, (pkg.main || "app.js")));
+        if (fs.existsSync(file)){
+            var projects = nconf.get("projects");
+            projects[name] = file;
+            nconf.set("projects", projects);
+            nconf.save(function (err){
+                if (err){
+                    app.log.error(err);
+                }
+                else{
+                    app.log.info("Project successfully added.");
+                }
+            });
+        }
+        else{
+            throw "Cannot determine an application entry point, define a 'main' in package.json.";
+        }
     }
     else{
-        throw "No package can be found at: " + $file;
+        throw "No package can be found at: " + basePath;
     }
 
 });
