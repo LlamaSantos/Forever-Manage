@@ -1,0 +1,19 @@
+{
+    "name": "Forever-Manage",
+    "main" : "app.js",
+    "bin": {
+        "forever-manage": "./bin/forever-manage"
+    },
+    "version": "0.0.1",
+    "engines": {
+        "node": ">=0.8.x"
+    },
+    "dependencies": {
+        "nconf" : "*",
+        "forever-monitor" : "*",
+        "underscore" : "*",
+        "eventemitter2" : "*",
+        "prompt" : "*",
+        "flatiron" : "*"
+    }
+}
