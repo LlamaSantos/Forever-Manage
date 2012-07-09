@@ -55,7 +55,11 @@ app.router.on("add :name :module", function (name, _path){
     var $file = path.normalize(path.join(process.cwd(), _path));
     app.log.info("Adding " + name + " at: " + $file);
 
+    app.log.info(process.cwd());
+
     if (fs.existsSync(path.normalize(path.join(process.cwd(), "package.json")))){
+        var pkg = JSON.parse()
+
         var projects = nconf.get("projects");
         projects[name] = $file;
         nconf.set("projects", projects);
