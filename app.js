@@ -12,6 +12,7 @@ var fs = require("fs"),
     });
 
 app.use(flatiron.plugins.cli, {});
+app.use(flatiron.plugins.log, {});
 
 var children = [];
 
@@ -48,16 +49,27 @@ bus.on("app::start", function (){
 // -- Ensure we can do anything w/ a config file.
 bus.emit("app::config");
 
-app.router.on("add :name :path", function (name, _path){
-    var $file = path.normalize(_path);
-    var projects = nconf.get("projects");
-    projects[name] = _path;
-    nconf.set("projects", projects);
-    nconf.save(function (err){
-        if (err){
-            app.log.error(err);
-        }
-    });
+//"add :name :path"
+app.router.on("add :name :module", function (name, _path){
+    var $file = path.normalize(path.join(process.cwd(), _path));
+
+    if (fs.existsSync(path.normalize(path.join(process.cwd(), "package.json")))){
+        app.log.info($file);
+        var projects = nconf.get("projects");
+        projects[name] = $file;
+        nconf.set("projects", projects);
+        nconf.save(function (err){
+            if (err){
+                app.log.error(err);
+            }
+            else{
+                app.log.info("Project Successfully Added.");
+            }
+        });
+    }
+    else{
+        throw "No package can be found at: " + $file;
+    }
 
 });
 
