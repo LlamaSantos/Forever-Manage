@@ -31,7 +31,7 @@ bus.on("app::config", function (){
 bus.on("app::start", function (){
     var projects = nconf.get("projects");
     _(_.keys(projects)).each(function (name){
-        child.push(new (forever.Monitor)(projects[name], {
+        children.push(new (forever.Monitor)(projects[name], {
             silent: false,
             watch: true,
             watchIgnoreDotFiles: true,
