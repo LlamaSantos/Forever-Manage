@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-var fs = require("fs"),
+var fs = require("fs")
     path = require("path"),
     nconf = require("nconf"),
     forever = require("forever-monitor"),
+    _ = require("underscore"),
     flatiron  = require("flatiron"),
     app = flatiron.app,
     EventEmitter2 = require("EventEmitter2").EventEmitter2,
