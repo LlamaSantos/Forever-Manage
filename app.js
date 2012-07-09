@@ -46,7 +46,7 @@ bus.on("app::start", function (){
             app.log.error(err);
         });
         child.on("exit", function (){
-            app.log.info("Process " + name + " has existed.");
+            app.log.info("Process " + name + " has exited.");
         });
 
         child.start();
