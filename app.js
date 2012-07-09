@@ -78,5 +78,7 @@ app.router.on("start", function (){
     bus.emit("app::start");
 });
 
+console.info(process.argv);
+
 // -- Dispatch everything from the cmdline
 app.router.dispatch("on", process.argv.slice(2).join(' '));
