@@ -25,7 +25,7 @@ bus.on("app::config", function (){
         fs.writeFileSync($file, data, "utf-8");
 
     }
-    nconf.argv().env().file({file: $file});
+    nconf.use("file", {file: $file});
 });
 bus.on("app::start", function (){
     var projects = nconf.get("projects");
@@ -55,7 +55,6 @@ app.router.on("add :name :module", function (name, _path){
     app.log.info("Adding " + name + " at: " + $file);
 
     if (fs.existsSync(path.normalize(path.join(process.cwd(), "package.json")))){
-        app.log.info($file);
         var projects = nconf.get("projects");
         projects[name] = $file;
         nconf.set("projects", projects);
@@ -64,7 +63,7 @@ app.router.on("add :name :module", function (name, _path){
                 app.log.error(err);
             }
             else{
-                app.log.info("Project Successfully Added.");
+                app.log.info("Project successfully added.");
             }
         });
     }
@@ -74,11 +73,20 @@ app.router.on("add :name :module", function (name, _path){
 
 });
 
+app.router.on("remove :name", function (name){
+    var projects = nconf.get("projects");
+    app.log.info("Removing " + name + " at: " + (projects[name] || "not found"));
+    delete projects[name];
+    nconf.set("projects", projects);
+    nconf.save(function (err){
+        if (err) app.log.error(err);
+        else app.log.info("Project successfully removed.");
+    })
+});
+
 app.router.on("start", function (){
     bus.emit("app::start");
 });
-
-console.info(process.argv);
 
 // -- Dispatch everything from the cmdline
 app.router.dispatch("on", process.argv.slice(2).join(' '));
